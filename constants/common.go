@@ -1,0 +1,20 @@
+package constants
+
+const (
+	// CTX_ID_PARAM      = "id"
+	// CTX_KEY_ROLE_NAME = "user_id"
+
+	ENUM_RUN_PRODUCTION = "production"
+	ENUM_RUN_TESTING    = "testing"
+
+	ENUM_PAGINATION_LIMIT = 10
+	ENUM_PAGINATION_PAGE  = 1
+
+	JWT_EXPIRE_TIME_IN_MINS = 120
+
+	RATE_LIMITER_REQUST_PER_MINUTE = 60
+	RATE_LIMITER_BURST             = 10
+
+	// ENUM_ISVERIFIED_TRUE  = true
+	// ENUM_ISVERIFIED_FALSE = false
+)

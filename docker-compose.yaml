@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: pemilu26-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: pemilu
+      POSTGRES_PASSWORD: BismillahCair
+      POSTGRES_DB: pemilu-cssmora-2026
+
+    ports:
+      - "5433:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

@@ -9,14 +9,20 @@ import (
 
 	"github.com/Pemilu-CSSMoRA/pemilu26-backend/cmd"
 	"github.com/Pemilu-CSSMoRA/pemilu26-backend/config"
+	"github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/controller"
 	"github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/dto"
+	"github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/middleware"
+	"github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/repository"
+	"github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/routes"
+	"github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/service"
 	"github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/utils/logger"
 	"github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/utils/response"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	if err := config.LoadEnv(); err != nil {
+	cfg, err := config.LoadEnv()
+	if err != nil {
 		logger.Errorf("Warning: %v", err.Error())
 		logger.Errorf("Continuing without .env file. Ensure all necessary environment variables are set.")
 	}
@@ -38,27 +44,53 @@ func main() {
 		}
 	}
 
-	router := gin.Default()
+	var (
+		// repository
+		userRepository repository.UserRepository = repository.NewUserRepository(db)
 
-	router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
+		// service
+		jwtService        service.JWTService    = service.NewJWTService(cfg.JWTSecret, cfg.JWTExpireHours)
+		middlewareService middleware.Middleware = middleware.New(db, jwtService)
+
+		userService service.UserService = service.NewUserService(userRepository, jwtService)
+
+		// controller
+		userController controller.UserController = controller.NewUserController(userService)
+	)
+
+	logger.Infof("Services initialized")
+	logger.Infof("Setting up server...")
+	server := gin.Default()
+	server.Use(handlePanic())
+	server.MaxMultipartMemory = 30 * 1024 * 1024
+	server.NoRoute(func(ctx *gin.Context) {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"status":  http.StatusNotFound,
+			"message": "Route Not Found",
+		})
+	})
+
+	server.GET("/api/ping", func(c *gin.Context) {
+		c.JSON(200, gin.H{
 			"message": "Pemilu 2026 Backend API",
 		})
 	})
 
-	router.GET("/health", func(c *gin.Context) {
+	server.GET("/api/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "OK",
 		})
 	})
 
+	//routes
+	routes.User(server, userController, middlewareService)
 	port := config.GetEnv("APP_PORT")
 
 	if port == "" {
 		port = "8080"
 	}
 
-	router.Run(":" + port)
+	server.Run(":" + port)
 }
 
 func handlePanic() gin.HandlerFunc {

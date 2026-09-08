@@ -3,7 +3,9 @@ package dto
 import (
 	"net/http"
 
+	"github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/entity"
 	MyError "github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/utils/error"
+	"github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/utils/pagination"
 )
 
 const (
@@ -12,6 +14,7 @@ const (
 	MESSAGE_FAILED_GET_LIST_USER           = "failed get list user"
 	MESSAGE_FAILED_GET_USER_TOKEN          = "failed get user token"
 	MESSAGE_FAILED_GET_USER                = "failed get user"
+	MESSAGE_FAILED_GET_USER_ID             = "failed get user id"
 	MESSAGE_FAILED_LOGIN                   = "failed login"
 	MESSAGE_FAILED_WRONG_NIA_OR_PASSWORD   = "wrong nia or password"
 	MESSAGE_FAILED_UPDATE_USER             = "failed update user"
@@ -39,6 +42,7 @@ const (
 )
 
 var (
+	ErrInvalidUserID      = MyError.New("invalid user id", http.StatusInternalServerError)
 	ErrCreateUser         = MyError.New("gagal membuat user", http.StatusInternalServerError)
 	ErrInvalidRole        = MyError.New("invalid role", http.StatusBadRequest)
 	ErrGetAllUser         = MyError.New("gagal mengambil semua user", http.StatusInternalServerError)
@@ -62,21 +66,27 @@ var (
 )
 
 type (
+	UserPaginationResponse struct {
+		Data []UserResponse `json:"data"`
+		pagination.Meta
+	}
+
+	GetAllUserRepositoryResponse struct {
+		Users []entity.User
+		pagination.Meta
+	}
+	UserResponse struct {
+		ID       string `json:"id" binding:"required"`
+		Name     string `json:"name" binding:"required"`
+		NIA      string `json:"nia" binding:"required"`
+		Angkatan string `json:"angkatan" binding:"required"`
+		Role     string `json:"role" binding:"required"`
+	}
 	UserRegisterRequest struct {
 		Name     string `json:"name" form:"name" binding:"required,max=150"`
 		NIA      string `json:"nia" form:"nia" binding:"required,max=100"`
 		Angkatan string `json:"angkatan" form:"angkatan" binding:"required,max=100"`
 		Password string `json:"password" form:"password" binding:"required,max=100"`
-		Role     string `json:"role" form:"name" binding:"required,max=100"`
-	}
-
-	UserRegisterResponse struct {
-		ID       string `json:"id" binding:"required"`
-		Name     string `json:"name" form:"name" binding:"required"`
-		NIA      string `json:"nia" form:"nia" binding:"required"`
-		Angkatan string `json:"angkatan" form:"angkatan" binding:"required"`
-		Password string `json:"password" form:"password" binding:"required"`
-		Role     string `json:"role" form:"name" binding:"required"`
 	}
 
 	UserLoginRequest struct {
@@ -87,5 +97,17 @@ type (
 	UserLoginResponse struct {
 		Token string `json:"token" binding:"required"`
 		Role  string `json:"role" binding:"required"`
+	}
+
+	UserUpdateMeRequest struct {
+		Name     string `json:"name" form:"name" binding:"required"`
+		NIA      string `json:"nia" form:"nia" binding:"required"`
+		Angkatan string `json:"angkatan" form:"angkatan" binding:"required"`
+	}
+	UserUpdateAdminRequest struct {
+		Name     string `json:"name" form:"name" binding:"required"`
+		NIA      string `json:"nia" form:"nia" binding:"required"`
+		Angkatan string `json:"angkatan" form:"angkatan" binding:"required"`
+		Role     string `json:"role" form:"role" binding:"required"`
 	}
 )

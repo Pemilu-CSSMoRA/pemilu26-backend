@@ -4,11 +4,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/service"
 	"github.com/gin-gonic/gin"
 )
 
-func (m Middleware) Authenticate(jwtService service.JWTService) gin.HandlerFunc {
+func (m Middleware) Authenticate() gin.HandlerFunc {
 
 	return func(c *gin.Context) {
 
@@ -38,7 +37,7 @@ func (m Middleware) Authenticate(jwtService service.JWTService) gin.HandlerFunc 
 
 		token := parts[1]
 
-		claims, err := jwtService.ValidateToken(token)
+		claims, err := m.jwtService.ValidateToken(token)
 
 		if err != nil {
 			c.AbortWithStatusJSON(

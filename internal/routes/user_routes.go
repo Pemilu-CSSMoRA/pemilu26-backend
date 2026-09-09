@@ -21,9 +21,11 @@ func User(route *gin.Engine, userController controller.UserController, middlewar
 			// user
 			userRoutes.GET("/me", userController.GetMe)
 			userRoutes.PUT("/me", userController.UpdateMe)
+			userRoutes.PUT("/password", userController.ResetPasswordMe)
 
 			// admin
 			userRoutes.PUT("/:id", middleware.OnlyAllow(string(entity.RoleAdmin)), userController.UpdateAdmin)
+			userRoutes.PUT("/password/:id", middleware.OnlyAllow(string(entity.RoleAdmin)), userController.ResetPasswordAdmin)
 			//routes.DELETE("")
 			userRoutes.GET("", middleware.OnlyAllow(string(entity.RoleAdmin)), userController.GetAllUser)
 
@@ -31,7 +33,6 @@ func User(route *gin.Engine, userController controller.UserController, middlewar
 
 		//routes.GET("/verification-status", userController.CheckVerificationStatus)
 		//routes.GET("/me", middleware.Authenticate(), userController.Me)
-		//routes.POST("/reset", userController.ResetPassword)
 		//routes.POST("/forget", userController.ForgetPassword)
 	}
 }

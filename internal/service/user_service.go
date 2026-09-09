@@ -11,6 +11,7 @@ import (
 	"github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/utils/pagination"
 	"github.com/Pemilu-CSSMoRA/pemilu26-backend/internal/utils/password"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -22,6 +23,8 @@ type (
 		Verify(ctx context.Context, req dto.UserLoginRequest) (dto.UserLoginResponse, error)
 		UpdateMe(ctx context.Context, req dto.UserUpdateMeRequest, userId uuid.UUID) (dto.UserResponse, error)
 		UpdateAdmin(ctx context.Context, req dto.UserUpdateAdminRequest, userID uuid.UUID) (dto.UserResponse, error)
+		ResetPasswordMe(ctx context.Context, req dto.UserUpdatePasswordMeRequest, userID uuid.UUID) error
+		ResetPasswordAdmin(ctx context.Context, req dto.UserUpdatePasswordAdminRequest, userID uuid.UUID) error
 	}
 
 	userService struct {
@@ -248,4 +251,92 @@ func (s *userService) UpdateAdmin(ctx context.Context, req dto.UserUpdateAdminRe
 		Angkatan: update.Angkatan,
 		Role:     string(update.Role),
 	}, nil
+}
+
+func (s *userService) ResetPasswordMe(ctx context.Context, req dto.UserUpdatePasswordMeRequest, userID uuid.UUID) error {
+	// get user data
+	user, err := s.UserRepo.GetUserById(ctx, nil, userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return dto.ErrUserNotFound
+		}
+
+		return err
+	}
+
+	// check old password
+	checkPassword, err := password.CheckPassword(user.Password, []byte(req.OldPassword))
+	if err != nil || !checkPassword {
+		return dto.ErrInvalidCredentials
+	}
+
+	// check match new password
+	if req.NewPassword != req.ConfirmPassword {
+		return dto.ErrMissMatchNewPassword
+	}
+
+	// check old and new password
+	if req.NewPassword == req.OldPassword {
+		return dto.ErrSamePassword
+	}
+
+	hashedPassword, err := password.HashPassword(req.NewPassword)
+	if err != nil {
+		return dto.ErrHashPasswordFailed
+	}
+
+	user.Password = hashedPassword
+	if _, err := s.UserRepo.Update(ctx, nil, user); err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
+func (s *userService) ResetPasswordAdmin(ctx context.Context, req dto.UserUpdatePasswordAdminRequest, userID uuid.UUID) error {
+	// get user data
+	user, err := s.UserRepo.GetUserById(ctx, nil, userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return dto.ErrUserNotFound
+		}
+
+		return err
+	}
+
+	// check prevent same password
+	samePassword, err := password.CheckPassword(
+		user.Password,
+		[]byte(req.NewPassword),
+	)
+
+	if err != nil {
+		if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
+			samePassword = false
+		} else {
+			return err
+		}
+	}
+
+	if samePassword {
+		return dto.ErrSamePassword
+	}
+
+	// check match new password
+	if req.NewPassword != req.ConfirmPassword {
+		return dto.ErrMissMatchNewPassword
+	}
+
+	hashedPassword, err := password.HashPassword(req.NewPassword)
+	if err != nil {
+		return dto.ErrHashPasswordFailed
+	}
+
+	user.Password = hashedPassword
+	if _, err := s.UserRepo.Update(ctx, nil, user); err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -20,6 +20,8 @@ type (
 		Login(ctx *gin.Context)
 		UpdateMe(ctx *gin.Context)
 		UpdateAdmin(ctx *gin.Context)
+		ResetPasswordMe(ctx *gin.Context)
+		ResetPasswordAdmin(ctx *gin.Context)
 	}
 
 	userController struct {
@@ -157,4 +159,62 @@ func (c *userController) UpdateAdmin(ctx *gin.Context) {
 	}
 
 	response.BuildResponseSuccess(dto.MESSAGE_SUCCESS_UPDATE_USER, result).Send(ctx)
+}
+
+func (c *userController) ResetPasswordMe(ctx *gin.Context) {
+	userIDValue, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"message": "user id not found",
+		})
+		return
+	}
+
+	userID, ok := userIDValue.(uuid.UUID)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"message": "invalid user id",
+		})
+		return
+	}
+
+	user := dto.UserUpdatePasswordMeRequest{}
+	if err := ctx.ShouldBind(&user); err != nil {
+		err = MyError.NewWrap(err, dto.ErrInvalidInput, http.StatusBadRequest)
+		response.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err).SendWithAbort(ctx)
+		return
+	}
+
+	err := c.userService.ResetPasswordMe(ctx.Request.Context(), user, userID)
+	if err != nil {
+		response.BuildResponseFailed(dto.MESSAGE_FAILED_RESET_PASSWORD, err).Send(ctx)
+		return
+	}
+
+	response.BuildResponseSuccess(dto.MESSAGE_SUCCESS_RESET_PASSWORD, nil).Send(ctx)
+}
+
+func (c *userController) ResetPasswordAdmin(ctx *gin.Context) {
+	idParam := ctx.Param("id")
+
+	userID, err := uuid.Parse(idParam)
+	if err != nil {
+		err = MyError.NewWrap(err, dto.ErrInvalidUserID, http.StatusBadRequest)
+		response.BuildResponseFailed(dto.MESSAGE_FAILED_GET_USER_ID, err).SendWithAbort(ctx)
+		return
+	}
+
+	user := dto.UserUpdatePasswordAdminRequest{}
+	if err := ctx.ShouldBind(&user); err != nil {
+		err = MyError.NewWrap(err, dto.ErrInvalidInput, http.StatusBadRequest)
+		response.BuildResponseFailed(dto.MESSAGE_FAILED_GET_DATA_FROM_BODY, err).SendWithAbort(ctx)
+		return
+	}
+
+	if err := c.userService.ResetPasswordAdmin(ctx.Request.Context(), user, userID); err != nil {
+		response.BuildResponseFailed(dto.MESSAGE_FAILED_RESET_PASSWORD, err).Send(ctx)
+		return
+	}
+
+	response.BuildResponseSuccess(dto.MESSAGE_SUCCESS_RESET_PASSWORD, nil).Send(ctx)
 }

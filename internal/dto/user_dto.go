@@ -42,18 +42,20 @@ const (
 )
 
 var (
-	ErrInvalidUserID      = MyError.New("invalid user id", http.StatusInternalServerError)
-	ErrCreateUser         = MyError.New("gagal membuat user", http.StatusInternalServerError)
-	ErrInvalidRole        = MyError.New("invalid role", http.StatusBadRequest)
-	ErrGetAllUser         = MyError.New("gagal mengambil semua user", http.StatusInternalServerError)
-	ErrGetUserById        = MyError.New("gagal mengambil user berdasarkan ID", http.StatusBadRequest)
-	ErrGetUserByNIA       = MyError.New("gagal mengambil user berdasarkan NIA", http.StatusBadRequest)
-	ErrNIAAlreadyExists   = MyError.New("NIA sudah digunakan", http.StatusConflict)
-	ErrUpdateUser         = MyError.New("gagal memperbarui user", http.StatusInternalServerError)
-	ErrUserNotAdmin       = MyError.New("user bukan admin", http.StatusForbidden)
-	ErrUserNotFound       = MyError.New("user tidak ditemukan", http.StatusBadRequest)
-	ErrInvalidCredentials = MyError.New("nia atau password salah", http.StatusUnauthorized)
-	ErrDeleteUser         = MyError.New("gagal menghapus user", http.StatusInternalServerError)
+	ErrInvalidUserID        = MyError.New("invalid user id", http.StatusInternalServerError)
+	ErrCreateUser           = MyError.New("gagal membuat user", http.StatusInternalServerError)
+	ErrInvalidRole          = MyError.New("invalid role", http.StatusBadRequest)
+	ErrGetAllUser           = MyError.New("gagal mengambil semua user", http.StatusInternalServerError)
+	ErrGetUserById          = MyError.New("gagal mengambil user berdasarkan ID", http.StatusBadRequest)
+	ErrGetUserByNIA         = MyError.New("gagal mengambil user berdasarkan NIA", http.StatusBadRequest)
+	ErrNIAAlreadyExists     = MyError.New("NIA sudah digunakan", http.StatusConflict)
+	ErrUpdateUser           = MyError.New("gagal memperbarui user", http.StatusInternalServerError)
+	ErrMissMatchNewPassword = MyError.New("password tidak valid", http.StatusBadRequest)
+	ErrSamePassword         = MyError.New("password tidak berubah", http.StatusBadRequest)
+	ErrUserNotAdmin         = MyError.New("user bukan admin", http.StatusForbidden)
+	ErrUserNotFound         = MyError.New("user tidak ditemukan", http.StatusBadRequest)
+	ErrInvalidCredentials   = MyError.New("nia atau password salah", http.StatusUnauthorized)
+	ErrDeleteUser           = MyError.New("gagal menghapus user", http.StatusInternalServerError)
 	// ErrPasswordNotMatch       = MyError.New("password tidak cocok", http.StatusBadRequest)
 	// ErrEmailOrPassword        = MyError.New("email atau password salah", http.StatusUnauthorized)
 	ErrAccountNotVerified     = MyError.New("akun belum diverifikasi", http.StatusForbidden)
@@ -109,5 +111,16 @@ type (
 		NIA      string `json:"nia" form:"nia" binding:"required"`
 		Angkatan string `json:"angkatan" form:"angkatan" binding:"required"`
 		Role     string `json:"role" form:"role" binding:"required"`
+	}
+
+	UserUpdatePasswordMeRequest struct {
+		OldPassword     string `json:"old_password" form:"old_password" binding:"required"`
+		NewPassword     string `json:"new_password" form:"new_password" binding:"required"`
+		ConfirmPassword string `json:"confirm_password" form:"confirm_password" binding:"required"`
+	}
+
+	UserUpdatePasswordAdminRequest struct {
+		NewPassword     string `json:"new_password" form:"new_password" binding:"required"`
+		ConfirmPassword string `json:"confirm_password" form:"confirm_password" binding:"required"`
 	}
 )

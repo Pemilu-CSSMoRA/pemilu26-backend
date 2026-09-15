@@ -10,11 +10,12 @@ func Migrate(db *gorm.DB) error {
 	if err := db.AutoMigrate(
 		&entity.User{},
 		&entity.Election{},
-		&entity.ElectionVoter{},
+		&entity.ElectionVote{},
 		&entity.Candidate{},
 		&entity.CandidateMission{},
 		&entity.CandidateMedia{},
 		&entity.Ballot{},
+		&entity.BallotSelection{},
 	); err != nil {
 		return err
 	}

@@ -2,19 +2,20 @@ package entity
 
 import "github.com/google/uuid"
 
-type election_status string
+type ElectionStatus string
 
 const (
-	ElectionCreated election_status = "created"
-	ElectionStarted election_status = "start"
-	ElectionEnded   election_status = "end"
+	ElectionCreated ElectionStatus = "created"
+	ElectionStarted ElectionStatus = "start"
+	ElectionEnded   ElectionStatus = "end"
 )
 
 type Election struct {
-	ID          uuid.UUID       `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
-	Name        string          `json:"name"`
-	Description string          `json:"description"`
-	Status      election_status `json:"status" gorm:"default:created"`
+	ID          uuid.UUID      `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
+	Name        string         `gorm:"type:text;not null" json:"name"`
+	Description string         `gorm:"type:text;not null" json:"description"`
+	Year        string         `gorm:"type:text;not null" json:"year"`
+	Status      ElectionStatus `gorm:"type:text;not null" json:"status"`
 	Timestamp
 }
 

@@ -169,11 +169,10 @@ func (s *userService) UpdateMe(ctx context.Context, req dto.UserUpdateMeRequest,
 	}
 	if req.NIA != user.NIA {
 		check, err := s.UserRepo.GetUserByNIA(ctx, nil, req.NIA)
-		if err != nil {
-			return dto.UserResponse{}, dto.ErrUserNotFound
+		if err != nil && !errors.Is(err, dto.ErrUserNotFound) {
+			return dto.UserResponse{}, err
 		}
-
-		if check.NIA == req.NIA {
+		if err == nil && check.NIA == req.NIA {
 			return dto.UserResponse{}, dto.ErrNIAAlreadyExists
 		}
 		user.NIA = req.NIA
@@ -214,11 +213,10 @@ func (s *userService) UpdateAdmin(ctx context.Context, req dto.UserUpdateAdminRe
 	}
 	if req.NIA != user.NIA {
 		check, err := s.UserRepo.GetUserByNIA(ctx, nil, req.NIA)
-		if err != nil {
-			return dto.UserResponse{}, dto.ErrGeneral
+		if err != nil && !errors.Is(err, dto.ErrUserNotFound) {
+			return dto.UserResponse{}, err
 		}
-
-		if check.NIA == req.NIA {
+		if err == nil && check.NIA == req.NIA {
 			return dto.UserResponse{}, dto.ErrNIAAlreadyExists
 		}
 		user.NIA = req.NIA
@@ -272,7 +270,7 @@ func (s *userService) ResetPasswordMe(ctx context.Context, req dto.UserUpdatePas
 
 	// check match new password
 	if req.NewPassword != req.ConfirmPassword {
-		return dto.ErrMissMatchNewPassword
+		return dto.ErrPasswordNotMatch
 	}
 
 	// check old and new password
@@ -325,7 +323,7 @@ func (s *userService) ResetPasswordAdmin(ctx context.Context, req dto.UserUpdate
 
 	// check match new password
 	if req.NewPassword != req.ConfirmPassword {
-		return dto.ErrMissMatchNewPassword
+		return dto.ErrPasswordNotMatch
 	}
 
 	hashedPassword, err := password.HashPassword(req.NewPassword)

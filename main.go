@@ -24,7 +24,24 @@ func main() {
 	cfg, err := config.LoadEnv()
 	if err != nil {
 		logger.Errorf("Warning: %v", err.Error())
-		logger.Errorf("Continuing without .env file. Ensure all necessary environment variables are set.")
+		logger.Errorf("Continuing with process environment variables. Ensure all necessary environment variables are set.")
+	}
+	if cfg.JWTSecret == "" {
+		logger.Errorf("JWT_SECRET must be set")
+		return
+	}
+	if cfg.JWTExpireHours <= 0 {
+		logger.Errorf("JWT_EXPIRE_HOURS must be a positive integer")
+		return
+	}
+	if cfg.GinMode != "" {
+		switch cfg.GinMode {
+		case gin.DebugMode, gin.ReleaseMode, gin.TestMode:
+			gin.SetMode(cfg.GinMode)
+		default:
+			logger.Errorf("GIN_MODE must be debug, release, or test")
+			return
+		}
 	}
 
 	logger.Infof("Setting up database connection...")
@@ -46,16 +63,20 @@ func main() {
 
 	var (
 		// repository
-		userRepository repository.UserRepository = repository.NewUserRepository(db)
+		userRepository         repository.UserRepository         = repository.NewUserRepository(db)
+		electionRepository     repository.ElectionRepository     = repository.NewElectionRepository(db)
+		electionVoteRepository repository.ElectionVoteRepository = repository.NewElectionVoteRepository(db)
 
 		// service
 		jwtService        service.JWTService    = service.NewJWTService(cfg.JWTSecret, cfg.JWTExpireHours)
 		middlewareService middleware.Middleware = middleware.New(db, jwtService)
 
-		userService service.UserService = service.NewUserService(userRepository, jwtService)
+		userService     service.UserService     = service.NewUserService(userRepository, jwtService)
+		electionService service.ElectionService = service.NewElectionService(electionRepository, userRepository, electionVoteRepository)
 
 		// controller
-		userController controller.UserController = controller.NewUserController(userService)
+		userController     controller.UserController     = controller.NewUserController(userService)
+		electionController controller.ElectionController = controller.NewElectionController(electionService)
 	)
 
 	logger.Infof("Services initialized")
@@ -84,7 +105,8 @@ func main() {
 
 	//routes
 	routes.User(server, userController, middlewareService)
-	port := config.GetEnv("APP_PORT")
+	routes.Election(server, electionController, middlewareService)
+	port := cfg.AppPort
 
 	if port == "" {
 		port = "8080"

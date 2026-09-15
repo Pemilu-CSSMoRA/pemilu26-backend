@@ -16,11 +16,11 @@ const (
 
 type User struct {
 	ID       uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
-	Name     string    `json:"name"`
-	NIA      string    `json:"nia" gorm:"unique"`
-	Angkatan string    `json:"angkatan"`
-	Password string    `json:"password"`
-	Role     UserRole  `json:"role" gorm:"default:user"`
+	Name     string    `gorm:"type:text;not null" json:"name"`
+	NIA      string    `gorm:"type:text;unique" json:"nia"`
+	Angkatan string    `gorm:"type:text" json:"angkatan"`
+	Password string    `gorm:"type:text" json:"password"`
+	Role     UserRole  `gorm:"type:text" json:"role"`
 	Timestamp
 }
 

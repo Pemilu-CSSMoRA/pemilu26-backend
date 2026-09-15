@@ -198,7 +198,7 @@ func (s *electionService) EnrollVoters(ctx context.Context, electionID uuid.UUID
 
 		votes := make([]entity.ElectionVote, 0, len(userIDs))
 		for _, userID := range userIDs {
-			votes = append(votes, entity.ElectionVote{ElectionID: electionID, UserID: userID, Status: false})
+			votes = append(votes, entity.ElectionVote{ElectionID: electionID, UserID: userID, Status: entity.Enrolled})
 		}
 		enrolled, err = s.ElectionVoteRepo.CreateElectionVotes(ctx, tx, votes)
 		return err
@@ -228,7 +228,7 @@ func (s *electionService) UnenrollVoters(ctx context.Context, electionID uuid.UU
 			return dto.ErrElectionVoteNotFound
 		}
 		for _, electionVote := range existing {
-			if electionVote.Status {
+			if electionVote.Status == entity.Voted {
 				return dto.ErrElectionVoteAlreadyVoted
 			}
 		}
@@ -260,7 +260,7 @@ func mapElectionVoteResponses(electionVotes []entity.ElectionVote) []dto.Electio
 			ID:         electionVote.ID.String(),
 			ElectionID: electionVote.ElectionID,
 			UserID:     electionVote.UserID,
-			Status:     electionVote.Status,
+			Status:     string(electionVote.Status),
 		}
 		if electionVote.ElectionVoter != nil {
 			response.Voter = &dto.UserResponse{

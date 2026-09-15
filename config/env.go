@@ -21,7 +21,7 @@ func LoadEnv() (*Config, error) {
 	// container or deployment platform), so a missing .env file is not fatal.
 	// Always return a usable config to avoid a nil dereference in callers.
 	cfg := &Config{
-		AppPort:        os.Getenv("APP_PORT"),
+		AppPort:        os.Getenv("PORT"),
 		GinMode:        os.Getenv("GIN_MODE"),
 		JWTSecret:      os.Getenv("JWT_SECRET"),
 		JWTExpireHours: getIntEnv("JWT_EXPIRE_HOURS"),

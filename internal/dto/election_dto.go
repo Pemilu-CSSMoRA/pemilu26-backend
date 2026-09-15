@@ -81,7 +81,7 @@ type (
 		ID         string        `json:"id"`
 		ElectionID uuid.UUID     `json:"election_id"`
 		UserID     uuid.UUID     `json:"user_id"`
-		Status     bool          `json:"status"`
+		Status     string        `json:"status"`
 		Voter      *UserResponse `json:"voter,omitempty"`
 	}
 

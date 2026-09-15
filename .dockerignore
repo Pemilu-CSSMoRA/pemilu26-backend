@@ -1,0 +1,16 @@
+.git
+.gitignore
+.github
+
+.env
+.env.*
+
+tmp/
+vendor/
+
+Dockerfile
+docker-compose.yaml
+.air.toml
+
+README.md
+*.log

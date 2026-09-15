@@ -12,6 +12,7 @@ type Candidate struct {
 	Election *Election          `gorm:"foreignKey:ElectionID" json:"election,omitempty"`
 	User     *User              `gorm:"foreignKey:UserID" json:"user,omitempty"`
 	Missions []CandidateMission `gorm:"foreignKey:CandidateID" json:"candidate_mission"`
+	Media    []CandidateMedia   `gorm:"foreignKey:CandidateID;references:ID" json:"media"`
 
 	Timestamp
 }

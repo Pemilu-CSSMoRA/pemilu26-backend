@@ -1,19 +1,35 @@
 services:
-  postgres:
-    image: postgres:16
-    container_name: pemilu26-postgres
-    restart: unless-stopped
+  # postgres:
+  #   image: postgres:16
+  #   container_name: pemilu26-postgres
+  #   restart: unless-stopped
 
-    environment:
-      POSTGRES_USER: pemilu
-      POSTGRES_PASSWORD: BismillahCair
-      POSTGRES_DB: pemilu-cssmora-2026
+  #   environment:
+  #     POSTGRES_USER: pemilu
+  #     POSTGRES_PASSWORD: BismillahCair
+  #     POSTGRES_DB: pemilu-cssmora-2026
+
+  #   ports:
+  #     - "5433:5432"
+
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+
+  #   services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: pemilu26-backend
 
     ports:
-      - "5433:5432"
+      - "8080:8080"
 
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
 
-volumes:
-  postgres_data:
+    restart: unless-stopped
+
+# volumes:
+#   postgres_data:
